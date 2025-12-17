@@ -1,0 +1,9 @@
+# ninja log v6
+12	1441	7876415774724500	answer1_autogen/timestamp	886e420ecbc1cb8b
+12	1441	7876415774724500	answer1_autogen/mocs_compilation.cpp	886e420ecbc1cb8b
+12	1441	7876415774724500	E:/cpp code/Data_Structure_Design/answer1/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/answer1_autogen/timestamp	886e420ecbc1cb8b
+12	1441	7876415774724500	E:/cpp code/Data_Structure_Design/answer1/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug/answer1_autogen/mocs_compilation.cpp	886e420ecbc1cb8b
+1459	3938	7876415775904796	CMakeFiles/answer1.dir/main.cpp.obj	527267c62f964fd5
+1446	4179	7876415775800090	CMakeFiles/answer1.dir/answer1_autogen/mocs_compilation.cpp.obj	a1087fe763fb40d
+1470	4281	7876415776029918	CMakeFiles/answer1.dir/mainwindow.cpp.obj	219492329a3006bf
+4282	6020	7876415804155681	answer1.exe	612a8b4d99cb9c74
