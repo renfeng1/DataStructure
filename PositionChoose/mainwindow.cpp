@@ -10,33 +10,30 @@
 #include <QApplication>
 #include <QScreen>
 #include <QLinearGradient>
+#include <QFileDialog>
+#include <QInputDialog>
 
-/**
- * @brief 构造函数
- * @param parent 父窗口
- */
+// 构造函数
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_hasCalculated(false)
     , m_gridSize(50)
     , m_showGridMode(false)  // 默认显示XY坐标图
+    , m_isWeightMode(true)  // 默认权重模式
 {
     ui->setupUi(this);
     initializeUI();
 }
 
-/**
- * @brief 析构函数
- */
+// 析构函数
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
-/**
- * @brief 初始化界面
- */
+// 初始化界面
 void MainWindow::initializeUI()
 {
     // 设置窗口标题
@@ -50,6 +47,8 @@ void MainWindow::initializeUI()
     connect(ui->btnCalculate, &QPushButton::clicked, this, &MainWindow::calculateOptimalLocation);
     connect(ui->btnClear, &QPushButton::clicked, this, &MainWindow::clearAllAreas);
     connect(ui->btnRandom, &QPushButton::clicked, this, &MainWindow::generateRandomAreas);
+    connect(ui->btnLoadFromFile, &QPushButton::clicked, this, &MainWindow::loadAreasFromFile);
+    connect(ui->btnModeSwitch, &QPushButton::clicked, this, &MainWindow::switchMode);
     
     // 初始化绘图区域 - frame框现在在最左侧，绘图区域在右侧
     int padding = 20;
@@ -74,10 +73,8 @@ void MainWindow::initializeUI()
     updateStatusBar();
 }
 
-/**
- * @brief 重绘事件处理函数
- * @param event 重绘事件
- */
+// 重绘事件处理函数
+
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event)
@@ -137,11 +134,8 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.restore();
 }
 
-/**
- * @brief 绘制坐标网格
- * @param painter 绘图对象
- * @param contentRect 内容区域
- */
+// 绘制坐标网格
+
 void MainWindow::drawGrid(QPainter &painter, const QRect &contentRect)
 {
     painter.save();
@@ -239,11 +233,9 @@ void MainWindow::drawGrid(QPainter &painter, const QRect &contentRect)
     painter.restore();
 }
 
-/**
- * @brief 绘制简单网格（网格图模式）
- * @param painter 绘图对象
- * @param contentRect 内容区域
- */
+// 绘制简单网格（网格图模式）
+
+
 void MainWindow::drawSimpleGrid(QPainter &painter, const QRect &contentRect)
 {
     painter.save();
@@ -292,10 +284,8 @@ void MainWindow::drawSimpleGrid(QPainter &painter, const QRect &contentRect)
     painter.restore();
 }
 
-/**
- * @brief 绘制居民小区
- * @param painter 绘图对象
- */
+// 绘制居民小区
+
 void MainWindow::drawResidentialAreas(QPainter &painter)
 {
     painter.save();
@@ -315,18 +305,23 @@ void MainWindow::drawResidentialAreas(QPainter &painter)
         font.setPointSize(10);
         font.setBold(true);
         painter.setFont(font);
+        
+        // 显示坐标和权重
         QString coordText = QString("(%1,%2)").arg(area.x()).arg(area.y());
-        painter.drawText(screenPos + QPoint(30, -8), coordText);
+        QString weightText = QString("权重:%1").arg(area.weight());
+        
+        // 绘制坐标和权重标签
+        painter.drawText(screenPos + QPoint(30, -12), coordText);
+        painter.drawText(screenPos + QPoint(30, 10), weightText);
+        
         painter.setPen(QPen(QColor(52, 152, 219), 4));
     }
     
     painter.restore();
 }
 
-/**
- * @brief 绘制邮局位置
- * @param painter 绘图对象
- */
+// 绘制邮局位置
+
 void MainWindow::drawPostOffice(QPainter &painter)
 {
     if (!m_hasCalculated) return;
@@ -355,10 +350,8 @@ void MainWindow::drawPostOffice(QPainter &painter)
     painter.restore();
 }
 
-/**
- * @brief 绘制连接线
- * @param painter 绘图对象
- */
+// 绘制连接线
+
 void MainWindow::drawConnections(QPainter &painter)
 {
     if (!m_hasCalculated) return;
@@ -380,10 +373,8 @@ void MainWindow::drawConnections(QPainter &painter)
     painter.restore();
 }
 
-/**
- * @brief 鼠标点击事件处理函数
- * @param event 鼠标事件
- */
+// 鼠标点击事件处理函数
+
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
@@ -398,12 +389,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             qDebug() << "内容区域位置:" << contentPos;
             qDebug() << "逻辑坐标位置:" << logicalPos;
             
-            // 切换显示模式：点击绘图区域时在XY坐标图和网格图之间切换
-            m_showGridMode = !m_showGridMode;
+            // 保持当前显示模式，不进行切换
             
-            // 添加居民小区
+            // 添加居民小区，根据模式设置权重
             QString areaName = QString("小区%1").arg(m_locator.areaCount() + 1);
-            ResidentialArea newArea(logicalPos.x(), logicalPos.y(), areaName);
+            int weight = m_isWeightMode ? getWeightFromUser() : 1;
+            ResidentialArea newArea(logicalPos.x(), logicalPos.y(), areaName, weight);
             m_locator.addArea(newArea);
             
             m_hasCalculated = false; // 重置计算状态
@@ -417,10 +408,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     QMainWindow::mousePressEvent(event);
 }
 
-/**
- * @brief 窗口大小改变事件处理函数
- * @param event 大小改变事件
- */
+// 窗口大小改变事件处理函数
+
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event)
@@ -449,9 +438,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     updateStatusBar();
 }
 
-/**
- * @brief 计算最优邮局位置
- */
+// 计算最优邮局位置
 void MainWindow::calculateOptimalLocation()
 {
     if (m_locator.areaCount() == 0) {
@@ -488,9 +475,7 @@ void MainWindow::calculateOptimalLocation()
                             .arg(m_locator.areaCount()));
 }
 
-/**
- * @brief 清空所有居民小区
- */
+// 清空所有居民小区
 void MainWindow::clearAllAreas()
 {
     if (m_locator.areaCount() == 0) {
@@ -519,9 +504,7 @@ void MainWindow::clearAllAreas()
     }
 }
 
-/**
- * @brief 随机生成居民小区
- */
+// 随机生成居民小区
 void MainWindow::generateRandomAreas()
 {
     m_locator.clearAreas();
@@ -532,8 +515,9 @@ void MainWindow::generateRandomAreas()
     for (int i = 0; i < areaCount; ++i) {
         int x = generator->bounded(-180, 180);
         int y = generator->bounded(-180, 180);
+        int weight = m_isWeightMode ? generator->bounded(1, 101) : 1; // 权重模式下1-100，普通模式下1
         QString name = QString("随机小区%1").arg(i + 1);
-        m_locator.addArea(ResidentialArea(x, y, name));
+        m_locator.addArea(ResidentialArea(x, y, name, weight));
     }
     
     m_hasCalculated = false;
@@ -556,15 +540,95 @@ void MainWindow::generateRandomAreas()
     updateStatusBar();
 }
 
+// 从文件加载居民小区
+void MainWindow::loadAreasFromFile()
+{
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "选择小区数据文件",
+        QDir::homePath(),
+        "文本文件 (*.txt);;所有文件 (*.*)"
+    );
+    
+    if (filePath.isEmpty()) {
+        return; // 用户取消了文件选择
+    }
+    
+    bool success = m_locator.loadAreasFromFile(filePath);
+    
+    if (success) {
+        m_hasCalculated = false;
+        
+        // 更新逻辑坐标范围以包含所有点，并添加边距
+        QRect range = m_locator.getCoordinateRange();
+        int margin = 20; // 边距
+        m_logicalBounds = QRect(range.left() - margin, range.top() - margin,
+                               range.width() + 2 * margin, range.height() + 2 * margin);
+        
+        // 重新计算缩放比例
+        m_scaleX = static_cast<double>(m_drawingArea.width()) / m_logicalBounds.width();
+        m_scaleY = static_cast<double>(m_drawingArea.height()) / m_logicalBounds.height();
+        
+        // 更新主窗口显示
+        update();
+        updateStatusBar();
+        
+        QMessageBox::information(this, "加载成功", 
+                                QString("成功从文件加载了 %1 个小区数据！")
+                                .arg(m_locator.areaCount()));
+    } else {
+        QMessageBox::warning(this, "加载失败", 
+                           "无法从文件加载小区数据！请检查文件格式是否正确。");
+    }
+}
 
+// 获取用户输入的权重
 
-/**
- * @brief 更新状态栏信息
- */
+int MainWindow::getWeightFromUser()
+{
+    bool ok;
+    int weight = QInputDialog::getInt(
+        this,
+        "输入小区权重",
+        "请输入小区的权重值（1-100）：",
+        1,  // 默认值
+        1,  // 最小值
+        100, // 最大值
+        1,  // 步长
+        &ok
+    );
+    
+    if (ok) {
+        return weight;
+    } else {
+        return 1; // 用户取消输入时使用默认值1
+    }
+}
+
+// 切换模式（普通模式/权重模式）
+void MainWindow::switchMode()
+{
+    m_isWeightMode = !m_isWeightMode;
+    updateStatusBar();
+    
+    // 显示当前模式信息
+    QString modeText = m_isWeightMode ? "权重模式" : "普通模式";
+    QMessageBox::information(this, "模式切换", QString("已切换到%1\n\n%2模式下：\n- 点击绘图区域添加小区时，%3\n- 自动添加小区时，权重均为1").arg(
+        modeText,
+        modeText,
+        m_isWeightMode ? "需要输入权重（1-100）" : "权重自动设为1"
+    ));
+}
+
+// 更新状态栏信息
 void MainWindow::updateStatusBar()
 {
     QString statusText = QString("居民小区数量: %1 | ")
                         .arg(m_locator.areaCount());
+    
+    // 添加当前模式信息
+    statusText += QString("当前模式: %1 | ")
+                 .arg(m_isWeightMode ? "权重模式" : "普通模式");
     
     // 添加显示模式信息
     statusText += QString("显示模式: %1 | ")
@@ -582,11 +646,8 @@ void MainWindow::updateStatusBar()
     ui->statusbar->showMessage(statusText);
 }
 
-/**
- * @brief 坐标转换：逻辑坐标到屏幕坐标
- * @param logicalPoint 逻辑坐标点
- * @return 屏幕坐标点
- */
+// 坐标转换：逻辑坐标到屏幕坐标
+
 QPoint MainWindow::logicalToScreen(const QPoint &logicalPoint) const
 {
     // 将逻辑坐标映射到屏幕坐标
@@ -605,11 +666,8 @@ QPoint MainWindow::logicalToScreen(const QPoint &logicalPoint) const
     return QPoint(screenX, screenY);
 }
 
-/**
- * @brief 坐标转换：屏幕坐标到逻辑坐标
- * @param screenPoint 屏幕坐标点
- * @return 逻辑坐标点
- */
+// 坐标转换：屏幕坐标到逻辑坐标
+
 QPoint MainWindow::screenToLogical(const QPoint &screenPoint) const
 {
     // Y轴翻转（屏幕坐标Y轴向下为正）

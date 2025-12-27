@@ -14,9 +14,7 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-/**
- * @brief 主窗口类，负责邮局选址问题的可视化界面
- */
+// 主窗口类，负责邮局选址问题的可视化界面
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -26,95 +24,72 @@ public:
     ~MainWindow();
 
 protected:
-    /**
-     * @brief 重绘事件处理函数
-     * @param event 重绘事件
-     */
+    // 重绘事件处理函数
+
     void paintEvent(QPaintEvent *event) override;
     
-    /**
-     * @brief 鼠标点击事件处理函数
-     * @param event 鼠标事件
-     */
+    // 鼠标点击事件处理函数
+
     void mousePressEvent(QMouseEvent *event) override;
     
-    /**
-     * @brief 窗口大小改变事件处理函数
-     * @param event 大小改变事件
-     */
+    // 窗口大小改变事件处理函数
+
     void resizeEvent(QResizeEvent *event) override;
 
 private slots:
-    /**
-     * @brief 计算最优邮局位置
-     */
+    // 计算最优邮局位置
     void calculateOptimalLocation();
     
-    /**
-     * @brief 清空所有居民小区
-     */
+    // 清空所有居民小区
     void clearAllAreas();
     
-    /**
-     * @brief 随机生成居民小区
-     */
+    // 随机生成居民小区
     void generateRandomAreas();
     
-    /**
-     * @brief 更新状态栏信息
-     */
+    // 从文件加载居民小区
+    void loadAreasFromFile();
+    
+    // 更新状态栏信息
     void updateStatusBar();
+    
+    // 切换模式（普通模式/权重模式）
+    void switchMode();
 
 private:
-    /**
-     * @brief 初始化界面
-     */
+    // 初始化界面
     void initializeUI();
     
-    /**
-     * @brief 绘制坐标网格
-     * @param painter 绘图对象
-     * @param contentRect 内容区域
-     */
+    // 获取用户输入的权重
+
+    int getWeightFromUser();
+    
+    // 绘制坐标网格
+    
     void drawGrid(QPainter &painter, const QRect &contentRect);
     
-    /**
-     * @brief 绘制简单网格（网格图模式）
-     * @param painter 绘图对象
-     * @param contentRect 内容区域
-     */
+    // 绘制简单网格（网格图模式）
+
+
     void drawSimpleGrid(QPainter &painter, const QRect &contentRect);
     
-    /**
-     * @brief 绘制居民小区
-     * @param painter 绘图对象
-     */
+    // 绘制居民小区
+
     void drawResidentialAreas(QPainter &painter);
     
-    /**
-     * @brief 绘制邮局位置
-     * @param painter 绘图对象
-     */
+    // 绘制邮局位置
+
     void drawPostOffice(QPainter &painter);
     
-    /**
-     * @brief 绘制连接线
-     * @param painter 绘图对象
-     */
+    // 绘制连接线
+
     void drawConnections(QPainter &painter);
     
-    /**
-     * @brief 坐标转换：逻辑坐标到屏幕坐标
-     * @param logicalPoint 逻辑坐标点
-     * @return 屏幕坐标点
-     */
+    // 坐标转换：逻辑坐标到屏幕坐标
+    
     QPoint logicalToScreen(const QPoint &logicalPoint) const;
     
-    /**
-     * @brief 坐标转换：屏幕坐标到逻辑坐标
-     * @param screenPoint 屏幕坐标点
-     * @return 逻辑坐标点
-     */
+    // 坐标转换：屏幕坐标到逻辑坐标
+    
     QPoint screenToLogical(const QPoint &screenPoint) const;
 
 private:
@@ -127,6 +102,7 @@ private:
     double m_scaleX, m_scaleY;            ///< 坐标缩放比例
     int m_gridSize;                       ///< 网格大小
     bool m_showGridMode;                  ///< 是否显示网格模式（true: 网格图, false: XY坐标图）
+    bool m_isWeightMode;                  ///< 当前是否为权重模式（true: 权重模式, false: 普通模式）
 };
 
 #endif // MAINWINDOW_H

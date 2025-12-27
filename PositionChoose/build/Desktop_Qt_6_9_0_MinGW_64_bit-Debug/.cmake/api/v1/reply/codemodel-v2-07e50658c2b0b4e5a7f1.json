@@ -1,0 +1,79 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-90b49f07778a9eea8323.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "youjv",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "youjv::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-youjv-Debug-b857060d20817ee0bd48.json",
+					"name" : "youjv",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "youjv_autogen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-youjv_autogen-Debug-f1015e73e315dc463f70.json",
+					"name" : "youjv_autogen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "youjv_autogen_timestamp_deps::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-youjv_autogen_timestamp_deps-Debug-0f16f0fd249de5d42880.json",
+					"name" : "youjv_autogen_timestamp_deps",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/lilia/Documents/youjv/build/Desktop_Qt_6_9_0_MinGW_64_bit-Debug",
+		"source" : "C:/Users/lilia/Documents/youjv"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

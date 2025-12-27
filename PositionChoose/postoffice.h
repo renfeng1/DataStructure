@@ -1,153 +1,96 @@
 #ifndef POSTOFFICE_H
 #define POSTOFFICE_H
 
-#include <QPoint>
 #include <vector>
-#include <algorithm>
-#include <cmath>
-#include <limits>
+#include <QPoint>
+#include <QString>
+#include <QRect>
+#include "postoffice_algorithm.h" // 引入与Qt无关的算法库
 
-/**
- * @brief 居民小区类，表示一个居民小区的位置
- */
+// 住宅区类，Qt封装，用于界面显示
 class ResidentialArea {
 public:
-    /**
-     * @brief 构造函数
-     * @param x 东西向坐标
-     * @param y 南北向坐标
-     * @param name 小区名称
-     */
-    ResidentialArea(int x, int y, const QString& name = "") 
-        : m_x(x), m_y(y), m_name(name) {}
+    // 构造函数
     
-    int x() const { return m_x; }
-    int y() const { return m_y; }
-    QString name() const { return m_name; }
+    ResidentialArea(int x, int y, const QString& name, int weight = 1);
     
-    /**
-     * @brief 计算到另一个点的曼哈顿距离
-     * @param other 另一个点
-     * @return 曼哈顿距离
-     */
-    int manhattanDistance(const QPoint& other) const {
-        return std::abs(m_x - other.x()) + std::abs(m_y - other.y());
-    }
+    // 从算法库的ResidentialArea构造
+    ResidentialArea(const postoffice::ResidentialArea& algorithmArea);
     
-    /**
-     * @brief 转换为QPoint
-     */
-    QPoint toPoint() const { return QPoint(m_x, m_y); }
+    // 获取横坐标
+
+    int x() const;
+    
+    // 获取纵坐标
+
+    int y() const;
+    
+    // 获取住宅区名称
+
+    QString name() const;
+    
+    // 获取权重
+
+    int weight() const;
+    
+    // 获取坐标点
+
+    QPoint point() const;
+    
+    // 转换为算法库的ResidentialArea
+    postoffice::ResidentialArea toAlgorithmArea() const;
     
 private:
-    int m_x;
-    int m_y;
-    QString m_name;
+    int m_x;              ///< 横坐标
+    int m_y;              ///< 纵坐标
+    QString m_name;       ///< 住宅区名称
+    int m_weight;         ///< 权重
 };
 
-/**
- * @brief 邮局选址算法类
- */
+// 邮局选址器类，Qt封装，负责与界面交互
 class PostOfficeLocator {
 public:
-    /**
-     * @brief 添加居民小区
-     * @param area 居民小区对象
-     */
-    void addArea(const ResidentialArea& area) {
-        m_areas.push_back(area);
-    }
+    // 获取所有住宅区
+
+    const std::vector<ResidentialArea>& areas() const;
     
-    /**
-     * @brief 清空所有居民小区
-     */
-    void clearAreas() {
-        m_areas.clear();
-    }
+    // 添加住宅区
+
+    void addArea(const ResidentialArea& area);
     
-    /**
-     * @brief 获取居民小区数量
-     * @return 小区数量
-     */
-    size_t areaCount() const {
-        return m_areas.size();
-    }
+    // 计算最优邮局位置
+
+    QPoint calculateOptimalPostOffice() const;
     
-    /**
-     * @brief 获取所有居民小区
-     * @return 小区列表
-     */
-    const std::vector<ResidentialArea>& areas() const {
-        return m_areas;
-    }
+    // 计算总费用（所有住宅区到邮局的距离和）
+
+    int calculateTotalCost(const QPoint& postOfficePos) const;
     
-    /**
-     * @brief 使用中位数方法计算最优邮局位置
-     * @return 最优邮局位置
-     */
-    QPoint findOptimalLocation() const {
-        if (m_areas.empty()) {
-            return QPoint(0, 0);
-        }
-        
-        // 分别计算x坐标和y坐标的中位数
-        std::vector<int> xCoords, yCoords;
-        for (const auto& area : m_areas) {
-            xCoords.push_back(area.x());
-            yCoords.push_back(area.y());
-        }
-        
-        std::sort(xCoords.begin(), xCoords.end());
-        std::sort(yCoords.begin(), yCoords.end());
-        
-        int medianX = xCoords[xCoords.size() / 2];
-        int medianY = yCoords[yCoords.size() / 2];
-        
-        return QPoint(medianX, medianY);
-    }
+    // 获取住宅区数量
+
+    int areaCount() const;
     
-    /**
-     * @brief 计算总费用（所有小区到邮局的距离之和）
-     * @param postOffice 邮局位置
-     * @return 总费用
-     */
-    int calculateTotalCost(const QPoint& postOffice) const {
-        int totalCost = 0;
-        for (const auto& area : m_areas) {
-            totalCost += area.manhattanDistance(postOffice);
-        }
-        return totalCost;
-    }
+    // 清空所有住宅区
+    void clearAreas();
     
-    /**
-     * @brief 获取坐标范围
-     * @return 包含最小和最大坐标的矩形
-     */
-    QRect getCoordinateRange() const {
-        if (m_areas.empty()) {
-            return QRect(0, 0, 100, 100);
-        }
-        
-        int minX = std::numeric_limits<int>::max();
-        int maxX = std::numeric_limits<int>::min();
-        int minY = std::numeric_limits<int>::max();
-        int maxY = std::numeric_limits<int>::min();
-        
-        for (const auto& area : m_areas) {
-            minX = std::min(minX, area.x());
-            maxX = std::max(maxX, area.x());
-            minY = std::min(minY, area.y());
-            maxY = std::max(maxY, area.y());
-        }
-        
-        // 添加一些边距
-        int margin = 20;
-        return QRect(minX - margin, minY - margin, 
-                    maxX - minX + 2 * margin, maxY - minY + 2 * margin);
-    }
+    // 查找最优位置（与calculateOptimalPostOffice功能相同）
+
+    QPoint findOptimalLocation() const;
+    
+    // 获取坐标范围
+
+    QRect getCoordinateRange() const;
+    
+    // 从文件加载住宅区数据
+
+    // 
+    // 文件格式：每行一个住宅区，格式为：x,y,name,weight
+    // 例如：100,200,小区A,10
+    bool loadAreasFromFile(const QString& filePath);
     
 private:
-    std::vector<ResidentialArea> m_areas;
+    std::vector<ResidentialArea> m_areas;   ///< 住宅区集合（Qt版本）
+    postoffice::PostOfficeLocatorAlgorithm m_algorithm; ///< 与Qt无关的算法核心
 };
 
 #endif // POSTOFFICE_H
